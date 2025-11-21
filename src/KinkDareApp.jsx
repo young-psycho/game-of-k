@@ -288,6 +288,282 @@ function Pill({ active, onClick, children }) {
     );
 }
 
+// ── Settings ─────────────────────────────────────────────────────────────────────
+const SETTINGS_KEY = "kinkdare.settings.v1";
+const loadSettings = () => {
+    try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null"); } catch { return null; }
+};
+const saveSettings = (s) => localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+
+function SettingsView({ data, onSave, onClose, onReset }) {
+    const [localData, setLocalData] = useState(JSON.parse(JSON.stringify(data)));
+    const [tab, setTab] = useState("activities");
+    const [editingItem, setEditingItem] = useState(null);
+
+    const tabs = ["activities", "body_parts", "tools"];
+
+    const updateItem = (field, value) => {
+        setEditingItem(prev => ({ ...prev, [field]: value }));
+    };
+
+    const saveItem = () => {
+        const newData = { ...localData };
+        const collection = tab;
+
+        if (!editingItem.slug) editingItem.slug = editingItem.name.toLowerCase().replace(/\s+/g, '_');
+
+        const idx = newData[collection].findIndex(i => i.slug === editingItem.slug);
+        if (idx >= 0) {
+            newData[collection][idx] = editingItem;
+        } else {
+            newData[collection].push(editingItem);
+        }
+
+        if (tab === 'activities') {
+            if (editingItem._body_parts) {
+                newData.activity_body_parts[editingItem.slug] = editingItem._body_parts;
+                delete editingItem._body_parts;
+            }
+            if (editingItem._tools) {
+                newData.activity_tools[editingItem.slug] = editingItem._tools;
+                delete editingItem._tools;
+            }
+        }
+
+        setLocalData(newData);
+        setEditingItem(null);
+    };
+
+    const deleteItem = (slug) => {
+        if (!confirm("Delete this item?")) return;
+        const newData = { ...localData };
+        newData[tab] = newData[tab].filter(i => i.slug !== slug);
+        setLocalData(newData);
+    };
+
+    const startEdit = (item) => {
+        const copy = { ...item };
+        if (tab === 'activities') {
+            copy._body_parts = localData.activity_body_parts[item.slug] || [];
+            copy._tools = localData.activity_tools[item.slug] || [];
+        }
+        setEditingItem(copy);
+    };
+
+    const startNew = () => {
+        const base = { slug: "", name: "" };
+        if (tab === 'activities') {
+            Object.assign(base, {
+                verb: "", preposition: "on", with_word: "with",
+                has_body_part: true, has_duration: false, has_repetitions: false,
+                _body_parts: [], _tools: []
+            });
+        } else if (tab === 'body_parts') {
+            Object.assign(base, { genders: ["M", "F"] });
+        } else if (tab === 'tools') {
+            Object.assign(base, { always_available: false, implicit: false });
+        }
+        setEditingItem(base);
+    };
+
+    const exportSettings = () => {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(localData, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "kinkdare_settings.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    };
+
+    const importSettings = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const imported = JSON.parse(event.target.result);
+                    if (imported.activities && imported.body_parts && imported.tools) {
+                        setLocalData(imported);
+                        alert("Settings imported successfully! Review changes and click Save.");
+                    } else {
+                        alert("Invalid settings file format.");
+                    }
+                } catch (err) {
+                    alert("Error parsing JSON file.");
+                }
+            };
+            reader.readAsText(file);
+        };
+        input.click();
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/90 z-50 overflow-y-auto p-4 sm:p-8">
+            <div className="max-w-4xl mx-auto bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-2xl">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <h2 className="text-2xl font-bold text-zinc-100">Settings</h2>
+                    <div className="flex flex-wrap gap-2">
+                        <button onClick={importSettings} className="px-3 py-2 rounded-lg border border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-sm">Import</button>
+                        <button onClick={exportSettings} className="px-3 py-2 rounded-lg border border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-sm">Export</button>
+                        <button onClick={onReset} className="px-3 py-2 rounded-lg border border-red-900 text-red-400 hover:bg-red-900/20 text-sm">Reset Defaults</button>
+                        <button onClick={() => onSave(localData)} className="px-3 py-2 rounded-lg bg-emerald-700 text-white hover:bg-emerald-600 text-sm">Save & Close</button>
+                        <button onClick={onClose} className="px-3 py-2 rounded-lg border border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-sm">Cancel</button>
+                    </div>
+                </div>
+
+                {!editingItem ? (
+                    <>
+                        <div className="flex gap-2 mb-4 border-b border-zinc-800 pb-4">
+                            {tabs.map(t => (
+                                <button key={t} onClick={() => setTab(t)} className={`px-4 py-2 rounded-lg capitalize ${tab === t ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-zinc-200"}`}>
+                                    {t.replace('_', ' ')}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="mb-4">
+                            <button onClick={startNew} className="w-full py-3 border-2 border-dashed border-zinc-800 rounded-xl text-zinc-500 hover:border-zinc-700 hover:text-zinc-300 transition-colors">+ Add New {tab.slice(0, -1).replace('_', ' ')}</button>
+                        </div>
+                        <div className="grid gap-2">
+                            {localData[tab].map(item => (
+                                <div key={item.slug} className="flex justify-between items-center p-3 bg-zinc-950/50 rounded-lg border border-zinc-800/50">
+                                    <div>
+                                        <div className="font-medium">{item.name}</div>
+                                        <div className="text-xs text-zinc-500">{item.slug}</div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => startEdit(item)} className="px-3 py-1 rounded border border-zinc-700 text-xs hover:bg-zinc-800">Edit</button>
+                                        <button onClick={() => deleteItem(item.slug)} className="px-3 py-1 rounded border border-red-900/50 text-red-400 text-xs hover:bg-red-900/20">Delete</button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                ) : (
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center border-b border-zinc-800 pb-4">
+                            <h3 className="text-xl font-semibold">Edit {tab.slice(0, -1).replace('_', ' ')}</h3>
+                            <button onClick={() => setEditingItem(null)} className="text-zinc-400 hover:text-white">Back</button>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs text-zinc-400 mb-1">Name</label>
+                                <input value={editingItem.name} onChange={e => updateItem('name', e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded p-2" />
+                            </div>
+                            <div>
+                                <label className="block text-xs text-zinc-400 mb-1">Slug (ID)</label>
+                                <input value={editingItem.slug} onChange={e => updateItem('slug', e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded p-2" />
+                            </div>
+
+                            {tab === 'activities' && (
+                                <>
+                                    <div><label className="block text-xs text-zinc-400 mb-1">Verb</label><input value={editingItem.verb} onChange={e => updateItem('verb', e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded p-2" /></div>
+                                    <div><label className="block text-xs text-zinc-400 mb-1">Preposition</label><input value={editingItem.preposition} onChange={e => updateItem('preposition', e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded p-2" /></div>
+                                    <div><label className="block text-xs text-zinc-400 mb-1">"With" Word</label><input value={editingItem.with_word} onChange={e => updateItem('with_word', e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded p-2" /></div>
+
+                                    <div className="col-span-full space-y-2 p-3 bg-zinc-950/30 rounded-lg">
+                                        <label className="flex items-center gap-2"><input type="checkbox" checked={editingItem.has_body_part} onChange={e => updateItem('has_body_part', e.target.checked)} /> Has Body Part</label>
+                                        {editingItem.has_body_part && (
+                                            <div className="pl-6">
+                                                <div className="text-xs text-zinc-400 mb-1">Allowed Body Parts</div>
+                                                <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto p-2 bg-zinc-950 rounded border border-zinc-800">
+                                                    {localData.body_parts.map(bp => (
+                                                        <label key={bp.slug} className={`px-2 py-1 rounded text-xs cursor-pointer border ${editingItem._body_parts.includes(bp.slug) ? 'bg-emerald-900/50 border-emerald-800 text-emerald-200' : 'border-transparent hover:bg-zinc-900'}`}>
+                                                            <input type="checkbox" className="hidden" checked={editingItem._body_parts.includes(bp.slug)} onChange={e => {
+                                                                const newParts = e.target.checked
+                                                                    ? [...editingItem._body_parts, bp.slug]
+                                                                    : editingItem._body_parts.filter(s => s !== bp.slug);
+                                                                updateItem('_body_parts', newParts);
+                                                            }} />
+                                                            {bp.name}
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="col-span-full space-y-2 p-3 bg-zinc-950/30 rounded-lg">
+                                        <div className="text-xs text-zinc-400 mb-1">Allowed Tools</div>
+                                        <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto p-2 bg-zinc-950 rounded border border-zinc-800">
+                                            {localData.tools.map(t => (
+                                                <label key={t.slug} className={`px-2 py-1 rounded text-xs cursor-pointer border ${editingItem._tools.includes(t.slug) ? 'bg-emerald-900/50 border-emerald-800 text-emerald-200' : 'border-transparent hover:bg-zinc-900'}`}>
+                                                    <input type="checkbox" className="hidden" checked={editingItem._tools.includes(t.slug)} onChange={e => {
+                                                        const newTools = e.target.checked
+                                                            ? [...editingItem._tools, t.slug]
+                                                            : editingItem._tools.filter(s => s !== t.slug);
+                                                        updateItem('_tools', newTools);
+                                                    }} />
+                                                    {t.name}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="col-span-full grid grid-cols-2 gap-4 p-3 bg-zinc-950/30 rounded-lg">
+                                        <div>
+                                            <label className="flex items-center gap-2 mb-2"><input type="checkbox" checked={editingItem.has_duration} onChange={e => updateItem('has_duration', e.target.checked)} /> Has Duration (seconds)</label>
+                                            {editingItem.has_duration && (
+                                                <div className="flex gap-2">
+                                                    <input type="number" placeholder="Min Sec" value={editingItem.min_seconds || 0} onChange={e => updateItem('min_seconds', parseInt(e.target.value))} className="w-full bg-zinc-950 border border-zinc-800 rounded p-1 text-sm" />
+                                                    <input type="number" placeholder="Max Sec" value={editingItem.max_seconds || 0} onChange={e => updateItem('max_seconds', parseInt(e.target.value))} className="w-full bg-zinc-950 border border-zinc-800 rounded p-1 text-sm" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <label className="flex items-center gap-2 mb-2"><input type="checkbox" checked={editingItem.has_repetitions} onChange={e => updateItem('has_repetitions', e.target.checked)} /> Has Repetitions</label>
+                                            {editingItem.has_repetitions && (
+                                                <div className="flex gap-2">
+                                                    <input type="number" placeholder="Min Reps" value={editingItem.min_reps || 0} onChange={e => updateItem('min_reps', parseInt(e.target.value))} className="w-full bg-zinc-950 border border-zinc-800 rounded p-1 text-sm" />
+                                                    <input type="number" placeholder="Max Reps" value={editingItem.max_reps || 0} onChange={e => updateItem('max_reps', parseInt(e.target.value))} className="w-full bg-zinc-950 border border-zinc-800 rounded p-1 text-sm" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            {tab === 'body_parts' && (
+                                <div className="col-span-full">
+                                    <label className="block text-xs text-zinc-400 mb-1">Genders</label>
+                                    <div className="flex gap-2">
+                                        {["M", "F"].map(g => (
+                                            <label key={g} className="flex items-center gap-2 bg-zinc-950 px-3 py-2 rounded border border-zinc-800">
+                                                <input type="checkbox" checked={editingItem.genders.includes(g)} onChange={e => {
+                                                    const newG = e.target.checked ? [...editingItem.genders, g] : editingItem.genders.filter(x => x !== g);
+                                                    updateItem('genders', newG);
+                                                }} />
+                                                {g}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {tab === 'tools' && (
+                                <div className="col-span-full flex gap-4">
+                                    <label className="flex items-center gap-2"><input type="checkbox" checked={editingItem.always_available} onChange={e => updateItem('always_available', e.target.checked)} /> Always Available</label>
+                                    <label className="flex items-center gap-2"><input type="checkbox" checked={editingItem.implicit} onChange={e => updateItem('implicit', e.target.checked)} /> Implicit (e.g. body part)</label>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex justify-end gap-2 mt-6">
+                            <button onClick={() => setEditingItem(null)} className="px-4 py-2 rounded-lg border border-zinc-700 text-zinc-300 hover:bg-zinc-800">Cancel</button>
+                            <button onClick={saveItem} className="px-4 py-2 rounded-lg bg-emerald-700 text-white hover:bg-emerald-600">Save Item</button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 // ── Main App ────────────────────────────────────────────────────────────────────
 export default function KinkDareApp() {
     const restored = useMemo(loadSession, []);
@@ -296,7 +572,8 @@ export default function KinkDareApp() {
     const [consents, setConsents] = useState(restored?.consents || {}); // key: "a|b" => true
     const [prefs, setPrefs] = useState(restored?.prefs || {}); // { playerId: { activitySlug: "give|receive|both|nope" } }
     const [inventory, setInventory] = useState(restored?.inventory || []); // array of tool slugs
-    const [permanent, setPermanent] = useState(defaultPermanent);
+    const [permanent, setPermanent] = useState(() => loadSettings() || defaultPermanent);
+    const [showSettings, setShowSettings] = useState(false);
     const [step, setStep] = useState(restored?.step || 0);
     const [lastDare, setLastDare] = useState(null);
     const [error, setError] = useState("");
@@ -306,6 +583,7 @@ export default function KinkDareApp() {
 
     // Fetch permanent data from Supabase if configured
     useEffect(() => {
+        if (loadSettings()) return;
         let cancelled = false;
         async function fetchPermanent() {
             if (!sb) return; // keep offline defaults
@@ -507,10 +785,36 @@ export default function KinkDareApp() {
     // ── UI ─────────────────────────────────────────────────────────────────────────
     return (
         <div className="min-h-screen bg-zinc-950 text-zinc-100">
+            {showSettings && (
+                <SettingsView
+                    data={permanent}
+                    onSave={(newData) => {
+                        setPermanent(newData);
+                        saveSettings(newData);
+                        setShowSettings(false);
+                    }}
+                    onClose={() => setShowSettings(false)}
+                    onReset={() => {
+                        if (confirm("Reset all game data to defaults? This cannot be undone.")) {
+                            setPermanent(defaultPermanent);
+                            saveSettings(defaultPermanent);
+                            setShowSettings(false);
+                        }
+                    }}
+                />
+            )}
             <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-10">
-                <header className="mb-4 sm:mb-6 lg:mb-8">
-                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold leading-tight">Kink Dare — Private Session</h1>
-                    <p className="text-zinc-400 text-xs sm:text-sm lg:text-base mt-1">Consent‑first, preference‑aware dares. Use a safeword and play nice.</p>
+                <header className="mb-4 sm:mb-6 lg:mb-8 flex justify-between items-start">
+                    <div>
+                        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold leading-tight">Kink Dare — Private Session</h1>
+                        <p className="text-zinc-400 text-xs sm:text-sm lg:text-base mt-1">Consent‑first, preference‑aware dares. Use a safeword and play nice.</p>
+                    </div>
+                    <button onClick={() => setShowSettings(true)} className="p-2 text-zinc-400 hover:text-white transition-colors" title="Settings">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.581-.495.644-.869l.214-1.281z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </button>
                 </header>
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
