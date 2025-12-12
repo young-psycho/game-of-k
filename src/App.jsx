@@ -1,35 +1,33 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { GameProvider } from "./context/GameContext";
+import Layout from "./components/Layout";
+import LandingPage from "./pages/LandingPage";
+import PlayerSetup from "./pages/PlayerSetup";
+import ConsentSetup from "./pages/ConsentSetup";
+import PreferencesSetup from "./pages/PreferencesSetup";
+import InventorySetup from "./pages/InventorySetup";
+import GamePlay from "./pages/GamePlay";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <GameProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route element={<Layout />}>
+            <Route path="players" element={<PlayerSetup />} />
+            <Route path="consent" element={<ConsentSetup />} />
+            <Route path="preferences" element={<PreferencesSetup />} />
+            <Route path="inventory" element={<InventorySetup />} />
+            <Route path="play" element={<GamePlay />} />
+          </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </GameProvider>
+  );
 }
 
-export default App
+export default App;
