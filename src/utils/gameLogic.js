@@ -20,7 +20,7 @@ export function phrase(activitySlug, bodyPartSlug) {
 // Dare generator with constraints
 export function buildDare(session, permanent, recentSignatures = new Set()) {
     const { players, consents, prefs, inventory } = session;
-    const { activities, body_parts, activity_body_parts, tools, activity_tools } = permanent;
+    const { activities, body_parts, tools } = permanent;
 
 
     // Precompute helper indexes
@@ -28,6 +28,9 @@ export function buildDare(session, permanent, recentSignatures = new Set()) {
     const activityBySlug = Object.fromEntries(activities.map((a) => [a.slug, a]));
     const bodyBySlug = Object.fromEntries(body_parts.map((b) => [b.slug, b]));
 
+    // Identify body parts that can be actors
+    const actorBodyParts = body_parts.filter(b => b.is_actor);
+    const actorBodyPartSlugs = new Set(actorBodyParts.map(b => b.slug));
 
     // Build all eligible combinations, then sample one
     const combos = [];
@@ -42,34 +45,103 @@ export function buildDare(session, permanent, recentSignatures = new Set()) {
 
 
             for (const act of activities) {
-                const pG = prefs[giver.id]?.[act.slug] || "nope";
-                const pR = prefs[receiver.id]?.[act.slug] || "nope";
-                const giverOK = pG === "give" || pG === "both";
-                const recOK = pR === "receive" || pR === "both";
-                if (!giverOK || !recOK) continue;
+                const pG = prefs[giver.id]?.[act.slug];
+                const pR = prefs[receiver.id]?.[act.slug];
+
+                // Ensure preferences exist and are in the new object format
+                if (!pG || !pR || typeof pG !== 'object' || typeof pR !== 'object') continue;
+
+                const giverWantsToGive = pG.give?.enabled;
+                const receiverWantsToReceive = pR.receive?.enabled;
+
+                if (!giverWantsToGive || !receiverWantsToReceive) continue;
 
                 // Check if this combo was recent
                 const signature = `${giver.id}|${receiver.id}|${act.slug}`;
                 const isRecent = recentSignatures.has(signature);
 
 
-                const allowedParts = act.has_body_part ? (activity_body_parts[act.slug] || []) : [null];
-                const partsFiltered = allowedParts.filter((bp) => {
-                    if (!bp) return true;
-                    const b = bodyBySlug[bp];
-                    return b && (b.genders.includes(receiver.gender) || b.genders.includes("Any"));
-                });
-                if (act.has_body_part && partsFiltered.length === 0) continue;
+                // Determine allowed body parts (intersection of giver's target list and receiver's allowed list)
+                let partsFiltered = [null];
+                if (act.has_body_part) {
+                    let giverTargets = pG.give?.targets || [];
+                    let receiverTargets = pR.receive?.targets || [];
+
+                    // Apply enforcement
+                    if (act.enforced_targets) {
+                        giverTargets = [...new Set([...giverTargets, ...act.enforced_targets])];
+                        receiverTargets = [...new Set([...receiverTargets, ...act.enforced_targets])];
+                    }
+
+                    // Intersection
+                    const commonTargets = giverTargets.filter(t => receiverTargets.includes(t));
+
+                    // Filter by gender
+                    partsFiltered = commonTargets.filter((bp) => {
+                        const b = bodyBySlug[bp];
+                        return b && (b.genders.includes(receiver.gender) || b.genders.includes("Any"));
+                    });
+
+                    if (partsFiltered.length === 0) continue;
+                }
 
 
-                const toolSlugs = activity_tools[act.slug] || [];
-                const inventorySet = new Set([...(inventory || []), ...tools.filter(t => t.always_available).map(t => t.slug)]);
-                const usableTools = toolSlugs.filter((ts) => inventorySet.has(ts));
-                // If an activity defines tools but none usable, skip
-                if (toolSlugs.length > 0 && usableTools.length === 0) continue;
+                // Determine allowed tools/actors (intersection)
+                const giverTools = pG.give?.tools || [];
+                const receiverTools = pR.receive?.tools || [];
 
+                // Intersection
+                let commonTools = giverTools.filter(t => receiverTools.includes(t));
 
-                const combo = { giver, receiver, act, parts: partsFiltered, tools: usableTools.length ? usableTools : [null] };
+                // Filter by inventory (tools need to be in inventory, actor body parts are always available)
+                const inventorySet = new Set([
+                    ...(inventory || []),
+                    ...tools.filter(t => t.always_available).map(t => t.slug),
+                    ...actorBodyParts.map(b => b.slug)
+                ]);
+
+                commonTools = commonTools.filter(ts => inventorySet.has(ts));
+
+                // If no tools available (and we assume every activity needs a tool/actor), skip
+                if (commonTools.length === 0) continue;
+
+                // Now we need to find valid (Tool, Part) pairs
+                // A pair is valid if the Part is in the intersection of:
+                // 1. Global allowed targets (partsFiltered)
+                // 2. Giver's allowed targets for this specific tool (if constrained)
+                // 3. Receiver's allowed targets for this specific tool (if constrained)
+
+                const validOptions = [];
+
+                for (const toolSlug of commonTools) {
+                    // Get constraints
+                    const giverConstraints = pG.give?.tool_constraints?.[toolSlug];
+                    const receiverConstraints = pR.receive?.tool_constraints?.[toolSlug];
+
+                    // Start with global valid parts
+                    let validPartsForTool = partsFiltered;
+
+                    // Apply Giver constraints if any
+                    if (giverConstraints && giverConstraints.length > 0) {
+                        validPartsForTool = validPartsForTool.filter(p => giverConstraints.includes(p));
+                    }
+
+                    // Apply Receiver constraints if any
+                    if (receiverConstraints && receiverConstraints.length > 0) {
+                        validPartsForTool = validPartsForTool.filter(p => receiverConstraints.includes(p));
+                    }
+
+                    // If we have valid parts (or if the activity doesn't use body parts), this tool is an option
+                    if (!act.has_body_part) {
+                        validOptions.push({ tool: toolSlug, parts: [null] });
+                    } else if (validPartsForTool.length > 0) {
+                        validOptions.push({ tool: toolSlug, parts: validPartsForTool });
+                    }
+                }
+
+                if (validOptions.length === 0) continue;
+
+                const combo = { giver, receiver, act, options: validOptions };
                 combos.push(combo);
                 if (!isRecent) freshCombos.push(combo);
             }
@@ -84,9 +156,12 @@ export function buildDare(session, permanent, recentSignatures = new Set()) {
 
 
     const pick = sample(poolToUse);
-    const part = pick.act.has_body_part ? sample(pick.parts) : null;
-    const toolSlug = sample(pick.tools);
-    const tool = toolSlug ? toolBySlug[toolSlug] : null;
+    const option = sample(pick.options);
+    const toolSlug = option.tool;
+    const part = sample(option.parts);
+
+    // Resolve tool object from either tools or body_parts
+    const tool = toolSlug ? (toolBySlug[toolSlug] || bodyBySlug[toolSlug]) : null;
 
     // Decide between duration or repetitions if both are available
     let secs = null;

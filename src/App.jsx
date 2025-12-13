@@ -4,7 +4,6 @@ import { GameProvider } from "./context/GameContext";
 import Layout from "./components/Layout";
 import LandingPage from "./pages/LandingPage";
 import PlayerSetup from "./pages/PlayerSetup";
-import ConsentSetup from "./pages/ConsentSetup";
 import PreferencesSetup from "./pages/PreferencesSetup";
 import InventorySetup from "./pages/InventorySetup";
 import GamePlay from "./pages/GamePlay";
@@ -18,7 +17,6 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route element={<Layout />}>
             <Route path="players" element={<PlayerSetup />} />
-            <Route path="consent" element={<ConsentSetup />} />
             <Route path="preferences" element={<PreferencesSetup />} />
             <Route path="inventory" element={<InventorySetup />} />
             <Route path="play" element={<GamePlay />} />

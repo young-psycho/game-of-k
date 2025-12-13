@@ -38,31 +38,13 @@ export function SettingsView({ data, onSave, onClose, onReset, sessionName, setS
             // If slug changed, update references in other collections
             if (oldSlug && oldSlug !== newSlug) {
                 if (tab === 'activities') {
-                    // Move body parts and tools to new key
-                    if (newData.activity_body_parts[oldSlug]) {
-                        newData.activity_body_parts[newSlug] = newData.activity_body_parts[oldSlug];
-                        delete newData.activity_body_parts[oldSlug];
-                    }
-                    if (newData.activity_tools[oldSlug]) {
-                        newData.activity_tools[newSlug] = newData.activity_tools[oldSlug];
-                        delete newData.activity_tools[oldSlug];
-                    }
-                } else if (tab === 'body_parts') {
-                    // Update references in activity_body_parts
-                    Object.keys(newData.activity_body_parts).forEach(actSlug => {
-                        const parts = newData.activity_body_parts[actSlug];
-                        const partIdx = parts.indexOf(oldSlug);
-                        if (partIdx !== -1) {
-                            parts[partIdx] = newSlug;
-                        }
-                    });
-                } else if (tab === 'tools') {
-                    // Update references in activity_tools
-                    Object.keys(newData.activity_tools).forEach(actSlug => {
-                        const tools = newData.activity_tools[actSlug];
-                        const toolIdx = tools.indexOf(oldSlug);
-                        if (toolIdx !== -1) {
-                            tools[toolIdx] = newSlug;
+                    // Update references in tools.allowed_activities
+                    newData.tools.forEach(t => {
+                        if (t.allowed_activities) {
+                            const actIdx = t.allowed_activities.indexOf(oldSlug);
+                            if (actIdx !== -1) {
+                                t.allowed_activities[actIdx] = newSlug;
+                            }
                         }
                     });
                 }
@@ -70,17 +52,6 @@ export function SettingsView({ data, onSave, onClose, onReset, sessionName, setS
         } else {
             // Add new
             newData[collection].push(editingItem);
-        }
-
-        if (tab === 'activities') {
-            if (editingItem._body_parts) {
-                newData.activity_body_parts[editingItem.slug] = editingItem._body_parts;
-                delete editingItem._body_parts;
-            }
-            if (editingItem._tools) {
-                newData.activity_tools[editingItem.slug] = editingItem._tools;
-                delete editingItem._tools;
-            }
         }
 
         setLocalData(newData);
@@ -96,9 +67,11 @@ export function SettingsView({ data, onSave, onClose, onReset, sessionName, setS
 
     const startEdit = (item) => {
         const copy = { ...item };
+        if (tab === 'tools') {
+            copy.allowed_activities = copy.allowed_activities || [];
+        }
         if (tab === 'activities') {
-            copy._body_parts = localData.activity_body_parts[item.slug] || [];
-            copy._tools = localData.activity_tools[item.slug] || [];
+            copy.default_targets = copy.default_targets || [];
         }
         setEditingItem(copy);
     };
@@ -108,13 +81,12 @@ export function SettingsView({ data, onSave, onClose, onReset, sessionName, setS
         if (tab === 'activities') {
             Object.assign(base, {
                 verb: "", preposition: "on", with_word: "with",
-                has_body_part: true, has_duration: false, has_repetitions: false,
-                _body_parts: [], _tools: []
+                has_body_part: true, has_duration: false, has_repetitions: false, default_targets: []
             });
         } else if (tab === 'body_parts') {
-            Object.assign(base, { genders: ["M", "F"] });
+            Object.assign(base, { genders: ["M", "F"], is_actor: false, allowed_activities: [] });
         } else if (tab === 'tools') {
-            Object.assign(base, { always_available: false, implicit: false });
+            Object.assign(base, { always_available: false, implicit: false, allowed_activities: [] });
         }
         setEditingItem(base);
     };
@@ -254,18 +226,20 @@ export function SettingsView({ data, onSave, onClose, onReset, sessionName, setS
                                     <div><label className="block text-xs text-zinc-500 mb-1 uppercase tracking-wider">"With" Word</label><input value={editingItem.with_word} onChange={e => updateItem('with_word', e.target.value)} className="w-full bg-dark border border-zinc-800 rounded-none p-2 text-zinc-300 focus:border-crimson-600 focus:outline-none" /></div>
 
                                     <div className="col-span-full space-y-2 p-4 bg-dark-elevated border border-zinc-800/50">
-                                        <label className="flex items-center gap-2 text-zinc-300"><input type="checkbox" checked={editingItem.has_body_part} onChange={e => updateItem('has_body_part', e.target.checked)} className="accent-crimson-600" /> Has Body Part</label>
+                                        <label className="flex items-center gap-2 text-zinc-300"><input type="checkbox" checked={editingItem.has_body_part} onChange={e => updateItem('has_body_part', e.target.checked)} className="accent-crimson-600" /> Has Body Part (Target)</label>
+
                                         {editingItem.has_body_part && (
-                                            <div className="pl-6">
-                                                <div className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">Allowed Body Parts</div>
+                                            <div className="mt-4">
+                                                <div className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">Default Target Body Parts</div>
                                                 <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto p-2 bg-dark rounded-none border border-zinc-800">
                                                     {localData.body_parts.map(bp => (
-                                                        <label key={bp.slug} className={`px-2 py-1 rounded-none text-xs cursor-pointer border transition-colors ${editingItem._body_parts.includes(bp.slug) ? 'bg-crimson-900/30 border-crimson-800 text-crimson-200' : 'border-transparent hover:bg-zinc-900 text-zinc-400'}`}>
-                                                            <input type="checkbox" className="hidden" checked={editingItem._body_parts.includes(bp.slug)} onChange={e => {
-                                                                const newParts = e.target.checked
-                                                                    ? [...editingItem._body_parts, bp.slug]
-                                                                    : editingItem._body_parts.filter(s => s !== bp.slug);
-                                                                updateItem('_body_parts', newParts);
+                                                        <label key={bp.slug} className={`px-2 py-1 rounded-none text-xs cursor-pointer border transition-colors ${editingItem.default_targets?.includes(bp.slug) ? 'bg-crimson-900/30 border-crimson-800 text-crimson-200' : 'border-transparent hover:bg-zinc-900 text-zinc-400'}`}>
+                                                            <input type="checkbox" className="hidden" checked={editingItem.default_targets?.includes(bp.slug)} onChange={e => {
+                                                                const current = editingItem.default_targets || [];
+                                                                const newTargets = e.target.checked
+                                                                    ? [...current, bp.slug]
+                                                                    : current.filter(s => s !== bp.slug);
+                                                                updateItem('default_targets', newTargets);
                                                             }} />
                                                             {bp.name}
                                                         </label>
@@ -273,23 +247,6 @@ export function SettingsView({ data, onSave, onClose, onReset, sessionName, setS
                                                 </div>
                                             </div>
                                         )}
-                                    </div>
-
-                                    <div className="col-span-full space-y-2 p-4 bg-dark-elevated border border-zinc-800/50">
-                                        <div className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">Allowed Tools</div>
-                                        <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto p-2 bg-dark rounded-none border border-zinc-800">
-                                            {localData.tools.map(t => (
-                                                <label key={t.slug} className={`px-2 py-1 rounded-none text-xs cursor-pointer border transition-colors ${editingItem._tools.includes(t.slug) ? 'bg-crimson-900/30 border-crimson-800 text-crimson-200' : 'border-transparent hover:bg-zinc-900 text-zinc-400'}`}>
-                                                    <input type="checkbox" className="hidden" checked={editingItem._tools.includes(t.slug)} onChange={e => {
-                                                        const newTools = e.target.checked
-                                                            ? [...editingItem._tools, t.slug]
-                                                            : editingItem._tools.filter(s => s !== t.slug);
-                                                        updateItem('_tools', newTools);
-                                                    }} />
-                                                    {t.name}
-                                                </label>
-                                            ))}
-                                        </div>
                                     </div>
 
                                     <div className="col-span-full grid grid-cols-2 gap-4 p-4 bg-dark-elevated border border-zinc-800/50">
@@ -316,27 +273,84 @@ export function SettingsView({ data, onSave, onClose, onReset, sessionName, setS
                             )}
 
                             {tab === 'body_parts' && (
-                                <div className="col-span-full">
-                                    <label className="block text-xs text-zinc-500 mb-1 uppercase tracking-wider">Genders</label>
-                                    <div className="flex gap-2">
-                                        {["M", "F"].map(g => (
-                                            <label key={g} className="flex items-center gap-2 bg-dark px-3 py-2 rounded-none border border-zinc-800 text-zinc-300 cursor-pointer hover:bg-zinc-900">
-                                                <input type="checkbox" checked={editingItem.genders.includes(g)} onChange={e => {
-                                                    const newG = e.target.checked ? [...editingItem.genders, g] : editingItem.genders.filter(x => x !== g);
-                                                    updateItem('genders', newG);
-                                                }} className="accent-crimson-600" />
-                                                {g}
-                                            </label>
-                                        ))}
+                                <>
+                                    <div className="col-span-full">
+                                        <label className="block text-xs text-zinc-500 mb-1 uppercase tracking-wider">Genders</label>
+                                        <div className="flex gap-2">
+                                            {["M", "F"].map(g => (
+                                                <label key={g} className="flex items-center gap-2 bg-dark px-3 py-2 rounded-none border border-zinc-800 text-zinc-300 cursor-pointer hover:bg-zinc-900">
+                                                    <input type="checkbox" checked={editingItem.genders.includes(g)} onChange={e => {
+                                                        const newG = e.target.checked ? [...editingItem.genders, g] : editingItem.genders.filter(x => x !== g);
+                                                        updateItem('genders', newG);
+                                                    }} className="accent-crimson-600" />
+                                                    {g}
+                                                </label>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
+
+                                    <div className="col-span-full mt-4">
+                                        <div className="flex gap-4">
+                                            <label className="flex items-center gap-2 text-zinc-300 mb-2">
+                                                <input type="checkbox" checked={editingItem.is_actor} onChange={e => updateItem('is_actor', e.target.checked)} className="accent-crimson-600" />
+                                                Can be used as Actor (Tool)
+                                            </label>
+                                            {editingItem.is_actor && (
+                                                <label className="flex items-center gap-2 text-zinc-300 mb-2">
+                                                    <input type="checkbox" checked={editingItem.implicit} onChange={e => updateItem('implicit', e.target.checked)} className="accent-crimson-600" />
+                                                    Implicit (e.g. "kiss" implies mouth)
+                                                </label>
+                                            )}
+                                        </div>
+
+                                        {editingItem.is_actor && (
+                                            <div className="space-y-2 p-4 bg-dark-elevated border border-zinc-800/50">
+                                                <div className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">Allowed Activities as Actor</div>
+                                                <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto p-2 bg-dark rounded-none border border-zinc-800">
+                                                    {localData.activities.map(act => (
+                                                        <label key={act.slug} className={`px-2 py-1 rounded-none text-xs cursor-pointer border transition-colors ${editingItem.allowed_activities?.includes(act.slug) ? 'bg-crimson-900/30 border-crimson-800 text-crimson-200' : 'border-transparent hover:bg-zinc-900 text-zinc-400'}`}>
+                                                            <input type="checkbox" className="hidden" checked={editingItem.allowed_activities?.includes(act.slug)} onChange={e => {
+                                                                const current = editingItem.allowed_activities || [];
+                                                                const newActs = e.target.checked
+                                                                    ? [...current, act.slug]
+                                                                    : current.filter(s => s !== act.slug);
+                                                                updateItem('allowed_activities', newActs);
+                                                            }} />
+                                                            {act.name}
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </>
                             )}
 
                             {tab === 'tools' && (
-                                <div className="col-span-full flex gap-4">
-                                    <label className="flex items-center gap-2 text-zinc-300"><input type="checkbox" checked={editingItem.always_available} onChange={e => updateItem('always_available', e.target.checked)} className="accent-crimson-600" /> Always Available</label>
-                                    <label className="flex items-center gap-2 text-zinc-300"><input type="checkbox" checked={editingItem.implicit} onChange={e => updateItem('implicit', e.target.checked)} className="accent-crimson-600" /> Implicit (e.g. body part)</label>
-                                </div>
+                                <>
+                                    <div className="col-span-full flex gap-4 flex-wrap">
+                                        <label className="flex items-center gap-2 text-zinc-300"><input type="checkbox" checked={editingItem.always_available} onChange={e => updateItem('always_available', e.target.checked)} className="accent-crimson-600" /> Always Available</label>
+                                        <label className="flex items-center gap-2 text-zinc-300"><input type="checkbox" checked={editingItem.implicit} onChange={e => updateItem('implicit', e.target.checked)} className="accent-crimson-600" /> Implicit (e.g. body part)</label>
+                                    </div>
+
+                                    <div className="col-span-full space-y-2 p-4 bg-dark-elevated border border-zinc-800/50">
+                                        <div className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">Allowed Activities</div>
+                                        <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto p-2 bg-dark rounded-none border border-zinc-800">
+                                            {localData.activities.map(act => (
+                                                <label key={act.slug} className={`px-2 py-1 rounded-none text-xs cursor-pointer border transition-colors ${editingItem.allowed_activities?.includes(act.slug) ? 'bg-crimson-900/30 border-crimson-800 text-crimson-200' : 'border-transparent hover:bg-zinc-900 text-zinc-400'}`}>
+                                                    <input type="checkbox" className="hidden" checked={editingItem.allowed_activities?.includes(act.slug)} onChange={e => {
+                                                        const current = editingItem.allowed_activities || [];
+                                                        const newActs = e.target.checked
+                                                            ? [...current, act.slug]
+                                                            : current.filter(s => s !== act.slug);
+                                                        updateItem('allowed_activities', newActs);
+                                                    }} />
+                                                    {act.name}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
                             )}
                         </div>
 

@@ -99,7 +99,7 @@ export function GameProvider({ children }) {
     const canAdvance = () => {
         if (step === 0) return players.length >= 2; // need at least two players
         if (step === 1) return true; // consents editable always
-        if (step === 2) return players.every((p) => permanent.activities.every((a) => (prefs[p.id]?.[a.slug] ?? "nope") !== undefined));
+        if (step === 2) return true; // Preferences are optional/complex
         if (step === 3) return true; // inventory optional
         return true;
     };
@@ -115,6 +115,15 @@ export function GameProvider({ children }) {
         setPrefs((pf) => { const n = { ...pf }; delete n[id]; return n; });
     };
 
+    const importPlayer = (playerData) => {
+        const newId = uid();
+        const newPlayer = { id: newId, name: playerData.name, gender: playerData.gender };
+        setPlayers(prev => [...prev, newPlayer]);
+        if (playerData.prefs) {
+            setPrefs(prev => ({ ...prev, [newId]: playerData.prefs }));
+        }
+    };
+
     const toggleConsent = (a, b) => setConsents((c) => ({ ...c, [`${a}|${b}`]: !c[`${a}|${b}`] }));
 
     const setAllConsentsForPlayer = (playerId, value) => {
@@ -128,18 +137,33 @@ export function GameProvider({ children }) {
         });
     };
 
-    const setPref = (pid, act, val) => setPrefs((pf) => ({ ...pf, [pid]: { ...(pf[pid] || {}), [act]: val } }));
+    const updatePlayerPref = (playerId, activitySlug, type, field, value) => {
+        setPrefs(prev => {
+            const pPrefs = prev[playerId] || {};
 
-    const setAllPrefsForPlayer = (playerId, value) => {
-        setPrefs((pf) => {
-            const newPrefs = { ...pf };
-            newPrefs[playerId] = {};
-            permanent.activities.forEach((activity) => {
-                newPrefs[playerId][activity.slug] = value;
-            });
-            return newPrefs;
+            // Find activity to get defaults
+            const activity = permanent.activities.find(a => a.slug === activitySlug);
+            const defaultTargets = activity?.default_targets || [];
+
+            const actPrefs = pPrefs[activitySlug] || {
+                give: { enabled: false, tools: [], targets: defaultTargets, tool_constraints: {} },
+                receive: { enabled: false, tools: [], targets: defaultTargets, tool_constraints: {} }
+            };
+
+            const newActPrefs = {
+                ...actPrefs,
+                [type]: {
+                    ...actPrefs[type],
+                    [field]: value
+                }
+            };
+
+            return { ...prev, [playerId]: { ...pPrefs, [activitySlug]: newActPrefs } };
         });
     };
+
+    const setPref = (pid, act, val) => { }; // Deprecated
+    const setAllPrefsForPlayer = (playerId, value) => { }; // Deprecated
 
 
     const toggleInventory = (slug) => setInventory((arr) => arr.includes(slug) ? arr.filter((s) => s !== slug) : [...arr, slug]);
@@ -229,7 +253,7 @@ export function GameProvider({ children }) {
         sessionName, setSessionName,
         players, addPlayer, removePlayer,
         consents, toggleConsent, setAllConsentsForPlayer,
-        prefs, setPref, setAllPrefsForPlayer,
+        prefs, setPref, setAllPrefsForPlayer, updatePlayerPref,
         inventory, toggleInventory, setInventory,
         permanent, updatePermanent, resetPermanent,
         resetSession,
@@ -239,7 +263,8 @@ export function GameProvider({ children }) {
         noRepeatTurns, setNoRepeatTurns,
         dareHistory,
         timers, startTimer, stopTimer, resetTimer, removeTimer,
-        canAdvance
+        canAdvance,
+        importPlayer
     };
 
     return (

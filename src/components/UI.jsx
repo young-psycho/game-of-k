@@ -2,7 +2,7 @@ import React from "react";
 
 export function Section({ title, children }) {
     return (
-        <div className="rounded-none border border-crimson-900/30 bg-dark-surface/80 p-4 sm:p-6 shadow-[0_0_15px_rgba(220,20,60,0.05)] backdrop-blur-sm transition-all duration-500 hover:shadow-[0_0_20px_rgba(220,20,60,0.1)] hover:border-crimson-900/50">
+        <div className="mb-6">
             <h2 className="text-lg sm:text-xl lg:text-2xl font-bold mb-4 sm:mb-6 text-crimson-500 uppercase tracking-widest border-b border-crimson-900/30 pb-2">{title}</h2>
             {children}
         </div>

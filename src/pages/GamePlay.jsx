@@ -64,14 +64,14 @@ const buildTokens = (dare, players, permanent, consents = {}, prefs = {}, invent
     const receiverOptions = validReceivers.map(p => p.name);
 
     // Options for Body Part (filtered by activity and gender)
-    const allowedBodyParts = permanent.activity_body_parts[meta.activity] || [];
+    const allowedBodyParts = permanent.activity_body_parts?.[meta.activity] || act.default_targets || [];
     const validBodyParts = allowedBodyParts
         .map(slug => permanent.body_parts.find(b => b.slug === slug))
         .filter(b => b && (b.genders.includes(meta.receiver.gender) || b.genders.includes("Any")));
     const bodyOptions = validBodyParts.map(b => b.name);
 
     // Options for Tool (filtered by activity and inventory)
-    const allowedToolSlugs = permanent.activity_tools[meta.activity] || [];
+    const allowedToolSlugs = permanent.activity_tools?.[meta.activity] || permanent.tools.filter(t => t.allowed_activities?.includes(meta.activity)).map(t => t.slug);
     const inventorySet = new Set([...(inventory || []), ...permanent.tools.filter(t => t.always_available).map(t => t.slug)]);
     const validTools = allowedToolSlugs
         .filter(slug => inventorySet.has(slug))
@@ -181,9 +181,14 @@ export default function GamePlay() {
 
     return (
         <Section title="Play">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
-                <button onClick={handleSpin} className="px-8 py-4 rounded-none bg-crimson-900/80 hover:bg-crimson-800 text-white text-lg font-display font-bold tracking-widest uppercase transition-all shadow-[0_0_15px_rgba(220,20,60,0.3)] hover:shadow-[0_0_25px_rgba(220,20,60,0.5)] border border-crimson-700">Spin</button>
-                <span className="text-zinc-500 text-xs uppercase tracking-wider">Uses mutual consents, preferences, and inventory.</span>
+            <div className="flex flex-col items-center gap-6 mb-8">
+                <button
+                    onClick={handleSpin}
+                    className="w-full sm:w-auto px-12 py-6 rounded-none bg-gradient-to-b from-crimson-800 to-crimson-900 hover:from-crimson-700 hover:to-crimson-800 text-white text-2xl font-display font-bold tracking-[0.2em] uppercase transition-all shadow-[0_0_20px_rgba(220,20,60,0.4)] hover:shadow-[0_0_40px_rgba(220,20,60,0.6)] border border-crimson-500/50 active:scale-95"
+                >
+                    Spin
+                </button>
+                <span className="text-zinc-500 text-xs uppercase tracking-wider opacity-70">Uses mutual consents, preferences, and inventory.</span>
             </div>
             {error && <div className="text-red-400 text-sm mb-4 p-4 bg-red-950/20 border border-red-900/50 rounded-none uppercase tracking-wide">{error}</div>}
             {lastDare && (

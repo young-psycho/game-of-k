@@ -20,7 +20,6 @@ export default function Layout() {
 
     const steps = [
         { path: "/players", label: "Players" },
-        { path: "/consent", label: "Consents" },
         { path: "/preferences", label: "Preferences" },
         { path: "/inventory", label: "Inventory" },
         { path: "/play", label: "Play" },
@@ -119,24 +118,29 @@ export default function Layout() {
                 </div>
             </header>
 
-            <div className="relative z-10 flex-1 flex flex-col max-w-7xl mx-auto w-full px-3 sm:px-4 lg:px-6 py-6">
-                <div className="flex-1 flex items-center justify-between h-full gap-6">
+            <div className="relative z-10 flex-1 flex flex-col max-w-6xl mx-auto w-full px-3 sm:px-4 lg:px-6 py-6 h-[calc(100vh-80px)]">
+                <div className="flex-1 flex items-center justify-center h-full gap-6">
                     <button
                         disabled={currentStepIndex <= 0}
                         onClick={goBack}
-                        className="hidden lg:flex p-4 hover:bg-crimson-900/5 disabled:opacity-0 text-zinc-600 hover:text-crimson-500 transition-all duration-300 border border-transparent hover:border-crimson-900/20"
+                        className="hidden lg:flex p-4 hover:bg-crimson-900/5 disabled:opacity-0 text-zinc-600 hover:text-crimson-500 transition-all duration-300 border border-transparent hover:border-crimson-900/20 rounded-full"
                     >
                         <ChevronLeft className="w-8 h-8" />
                     </button>
 
-                    <div className="flex-1 w-full">
-                        <Outlet />
+                    <div className="flex-1 w-full h-full max-w-3xl bg-dark-surface/50 backdrop-blur-sm border border-zinc-800/50 shadow-2xl overflow-hidden flex flex-col relative">
+                        {/* Card Header Decoration */}
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-crimson-900/50 to-transparent"></div>
+
+                        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-crimson-900/20 scrollbar-track-transparent p-4 md:p-8">
+                            <Outlet />
+                        </div>
                     </div>
 
                     <button
                         disabled={currentStepIndex >= steps.length - 1 || !canAdvance()}
                         onClick={goNext}
-                        className="hidden lg:flex p-4 hover:bg-crimson-900/5 disabled:opacity-0 text-zinc-600 hover:text-crimson-500 transition-all duration-300 border border-transparent hover:border-crimson-900/20"
+                        className="hidden lg:flex p-4 hover:bg-crimson-900/5 disabled:opacity-0 text-zinc-600 hover:text-crimson-500 transition-all duration-300 border border-transparent hover:border-crimson-900/20 rounded-full"
                     >
                         <ChevronRight className="w-8 h-8" />
                     </button>
