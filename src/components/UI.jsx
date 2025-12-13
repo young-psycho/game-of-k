@@ -3,7 +3,7 @@ import React from "react";
 export function Section({ title, children }) {
     return (
         <div className="mb-6">
-            <h2 className="text-lg sm:text-xl lg:text-2xl font-bold mb-4 sm:mb-6 text-crimson-500 uppercase tracking-widest border-b border-crimson-900/30 pb-2">{title}</h2>
+            {title && <h2 className="text-lg sm:text-xl lg:text-2xl font-bold mb-4 sm:mb-6 text-crimson-500 uppercase tracking-widest border-b border-crimson-900/30 pb-2">{title}</h2>}
             {children}
         </div>
     );

@@ -15,7 +15,7 @@ export default function InventorySetup() {
     };
 
     return (
-        <Section title="Inventory (available tools)">
+        <Section>
             <div className="flex gap-3 mb-4">
                 <button
                     onClick={addAll}

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { defaultPermanent } from "../data/defaults";
+import defaultPermanent from "../data/defaultSettings.json";
 import { uid, buildDare } from "../utils/gameLogic";
 import { loadSession, saveSession, loadSettings, saveSettings } from "../utils/storage";
 
@@ -27,6 +27,8 @@ export function GameProvider({ children }) {
     const [noRepeatTurns, setNoRepeatTurns] = useState(restored?.noRepeatTurns ?? 10);
     const [dareHistory, setDareHistory] = useState(restored?.dareHistory || []); // array of dare signatures
     const [timers, setTimers] = useState(restored?.timers || []); // array of { id, dareText, totalSeconds, timeRemaining, isActive, isCurrent }
+    const [wizardState, setWizardState] = useState(restored?.wizardState || null);
+    const [navOverride, setNavOverride] = useState(null); // { onBack, onNext, backLabel, nextLabel, canBack, canNext }
 
     // Fetch permanent data from Supabase if configured
     useEffect(() => {
@@ -71,8 +73,8 @@ export function GameProvider({ children }) {
 
     // Persist session
     useEffect(() => {
-        saveSession({ sessionName, players, consents, prefs, inventory, step, noRepeatTurns, dareHistory, timers });
-    }, [sessionName, players, consents, prefs, inventory, step, noRepeatTurns, dareHistory, timers]);
+        saveSession({ sessionName, players, consents, prefs, inventory, step, noRepeatTurns, dareHistory, timers, wizardState });
+    }, [sessionName, players, consents, prefs, inventory, step, noRepeatTurns, dareHistory, timers, wizardState]);
 
     // Timer countdown effect for all active timers
     useEffect(() => {
@@ -237,6 +239,7 @@ export function GameProvider({ children }) {
         setDareHistory([]);
         setNoRepeatTurns(10);
         setTimers([]);
+        setWizardState(null);
     };
 
     const updatePermanent = (newData) => {
@@ -264,7 +267,9 @@ export function GameProvider({ children }) {
         dareHistory,
         timers, startTimer, stopTimer, resetTimer, removeTimer,
         canAdvance,
-        importPlayer
+        importPlayer,
+        wizardState, setWizardState,
+        navOverride, setNavOverride
     };
 
     return (

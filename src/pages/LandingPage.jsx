@@ -15,7 +15,7 @@ export default function LandingPage() {
 
             <div className="text-center space-y-12 z-10 relative">
                 <div className="space-y-4">
-                    <h1 className="text-6xl md:text-8xl font-bold text-crimson-600 font-display tracking-[0.1em] uppercase drop-shadow-[0_0_15px_rgba(220,20,60,0.6)] animate-fade-in">
+                    <h1 className="text-5xl md:text-8xl font-bold text-crimson-600 font-display tracking-[0.1em] uppercase drop-shadow-[0_0_15px_rgba(220,20,60,0.6)] animate-fade-in">
                         Game of K
                     </h1>
                     <p className="text-xl md:text-2xl text-zinc-500 font-light tracking-[0.3em] uppercase border-t border-b border-crimson-900/30 py-2 inline-block">

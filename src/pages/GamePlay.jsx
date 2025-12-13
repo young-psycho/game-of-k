@@ -153,6 +153,37 @@ const buildTokens = (dare, players, permanent, consents = {}, prefs = {}, invent
     return tokens;
 };
 
+function IntroText() {
+    const [visibleWords, setVisibleWords] = useState(0);
+    const words = ["Begin", "the", "Game", "of", "K"];
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setVisibleWords(prev => {
+                if (prev < words.length) return prev + 1;
+                clearInterval(interval);
+                return prev;
+            });
+        }, 600);
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+        <div className="text-center py-12">
+            <h2 className="text-3xl md:text-5xl font-display font-bold tracking-widest uppercase leading-tight">
+                {words.map((word, i) => (
+                    <span
+                        key={i}
+                        className={`inline-block transition-all duration-1000 ${i < visibleWords ? 'opacity-100 transform translate-y-0 blur-0' : 'opacity-0 transform translate-y-4 blur-sm'} ${i >= 2 ? 'text-crimson-500 drop-shadow-[0_0_10px_rgba(220,20,60,0.4)]' : 'text-zinc-600'} mx-2`}
+                    >
+                        {word}
+                    </span>
+                ))}
+            </h2>
+        </div>
+    );
+}
+
 export default function GamePlay() {
     const {
         spin, lastDare, error,
@@ -180,32 +211,47 @@ export default function GamePlay() {
     };
 
     return (
-        <Section title="Play">
-            <div className="flex flex-col items-center gap-6 mb-8">
-                <button
-                    onClick={handleSpin}
-                    className="w-full sm:w-auto px-12 py-6 rounded-none bg-gradient-to-b from-crimson-800 to-crimson-900 hover:from-crimson-700 hover:to-crimson-800 text-white text-2xl font-display font-bold tracking-[0.2em] uppercase transition-all shadow-[0_0_20px_rgba(220,20,60,0.4)] hover:shadow-[0_0_40px_rgba(220,20,60,0.6)] border border-crimson-500/50 active:scale-95"
-                >
-                    Spin
-                </button>
-                <span className="text-zinc-500 text-xs uppercase tracking-wider opacity-70">Uses mutual consents, preferences, and inventory.</span>
-            </div>
-            {error && <div className="text-red-400 text-sm mb-4 p-4 bg-red-950/20 border border-red-900/50 rounded-none uppercase tracking-wide">{error}</div>}
-            {lastDare && (
-                <div className="text-xl sm:text-2xl lg:text-3xl font-serif bg-dark-elevated border border-crimson-900/30 rounded-none p-6 sm:p-8 leading-relaxed mb-6 shadow-inner text-zinc-200">
-                    <AnimatedDareText
-                        dare={lastDare}
-                        players={players}
-                        permanent={permanent}
-                        consents={consents}
-                        prefs={prefs}
-                        inventory={inventory}
-                        onComplete={handleAnimationComplete}
-                    />
+        <Section>
+            <div className="flex flex-col items-center justify-center min-h-[60vh] w-full max-w-4xl mx-auto gap-12">
+
+                {/* Activity Display Area */}
+                <div className="w-full flex items-center justify-center min-h-[200px]">
+                    {lastDare ? (
+                        <div className="w-full text-xl sm:text-2xl lg:text-3xl font-serif bg-dark-elevated border border-crimson-900/30 rounded-none p-6 sm:p-8 leading-relaxed shadow-[0_0_30px_rgba(0,0,0,0.5)] text-zinc-200 animate-fade-in relative">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-crimson-900/50 to-transparent"></div>
+                            <AnimatedDareText
+                                dare={lastDare}
+                                players={players}
+                                permanent={permanent}
+                                consents={consents}
+                                prefs={prefs}
+                                inventory={inventory}
+                                onComplete={handleAnimationComplete}
+                            />
+                        </div>
+                    ) : (
+                        <IntroText />
+                    )}
                 </div>
-            )}
+
+                {error && <div className="text-red-400 text-sm p-4 bg-red-950/20 border border-red-900/50 rounded-none uppercase tracking-wide animate-shake">{error}</div>}
+
+                {/* Controls */}
+                <div className="flex flex-col items-center gap-6 w-full">
+                    <button
+                        onClick={handleSpin}
+                        className="group relative w-full sm:w-auto px-16 py-6 bg-transparent overflow-hidden rounded-none border border-crimson-900/50 text-crimson-500 text-2xl font-display font-bold tracking-[0.25em] uppercase transition-all duration-500 hover:text-crimson-100 hover:border-crimson-500 hover:shadow-[0_0_30px_rgba(220,20,60,0.3)] active:scale-95"
+                    >
+                        <div className="absolute inset-0 w-full h-full bg-crimson-900/10 group-hover:bg-crimson-900/80 transition-all duration-500 ease-out transform translate-y-full group-hover:translate-y-0"></div>
+                        <span className="relative z-10">Spin</span>
+                    </button>
+                    <span className="text-zinc-600 text-[10px] uppercase tracking-[0.2em] opacity-60">Uses mutual consents & inventory</span>
+                </div>
+            </div>
+
+            {/* Timers Section */}
             {timers.length > 0 && (
-                <div className="space-y-4">
+                <div className="mt-12 space-y-4 max-w-2xl mx-auto border-t border-zinc-800/50 pt-8">
                     <h3 className="text-sm font-bold text-crimson-500 uppercase tracking-widest border-b border-crimson-900/20 pb-2">Active Timers</h3>
                     {[...timers].reverse().map((timer) => {
                         if (timer.isCurrent && !animationComplete) return null;
@@ -273,7 +319,7 @@ export default function GamePlay() {
                 </div>
             )}
             {dareHistory.length > 0 && (
-                <div className="mt-4 text-xs text-zinc-500">
+                <div className="mt-4 text-xs text-zinc-500 text-center">
                     Total dares: {dareHistory.length}
                 </div>
             )}

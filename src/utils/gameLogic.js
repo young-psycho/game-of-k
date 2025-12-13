@@ -1,4 +1,4 @@
-import { defaultPermanent } from "../data/defaults";
+import defaultPermanent from "../data/defaultSettings.json";
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
 export const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -87,55 +87,64 @@ export function buildDare(session, permanent, recentSignatures = new Set()) {
 
 
                 // Determine allowed tools/actors (intersection)
-                const giverTools = pG.give?.tools || [];
-                const receiverTools = pR.receive?.tools || [];
-
-                // Intersection
-                let commonTools = giverTools.filter(t => receiverTools.includes(t));
-
-                // Filter by inventory (tools need to be in inventory, actor body parts are always available)
-                const inventorySet = new Set([
-                    ...(inventory || []),
-                    ...tools.filter(t => t.always_available).map(t => t.slug),
-                    ...actorBodyParts.map(b => b.slug)
-                ]);
-
-                commonTools = commonTools.filter(ts => inventorySet.has(ts));
-
-                // If no tools available (and we assume every activity needs a tool/actor), skip
-                if (commonTools.length === 0) continue;
-
-                // Now we need to find valid (Tool, Part) pairs
-                // A pair is valid if the Part is in the intersection of:
-                // 1. Global allowed targets (partsFiltered)
-                // 2. Giver's allowed targets for this specific tool (if constrained)
-                // 3. Receiver's allowed targets for this specific tool (if constrained)
-
                 const validOptions = [];
 
-                for (const toolSlug of commonTools) {
-                    // Get constraints
-                    const giverConstraints = pG.give?.tool_constraints?.[toolSlug];
-                    const receiverConstraints = pR.receive?.tool_constraints?.[toolSlug];
-
-                    // Start with global valid parts
-                    let validPartsForTool = partsFiltered;
-
-                    // Apply Giver constraints if any
-                    if (giverConstraints && giverConstraints.length > 0) {
-                        validPartsForTool = validPartsForTool.filter(p => giverConstraints.includes(p));
-                    }
-
-                    // Apply Receiver constraints if any
-                    if (receiverConstraints && receiverConstraints.length > 0) {
-                        validPartsForTool = validPartsForTool.filter(p => receiverConstraints.includes(p));
-                    }
-
-                    // If we have valid parts (or if the activity doesn't use body parts), this tool is an option
+                if (act.has_tools === false) {
+                    // No tools involved
                     if (!act.has_body_part) {
-                        validOptions.push({ tool: toolSlug, parts: [null] });
-                    } else if (validPartsForTool.length > 0) {
-                        validOptions.push({ tool: toolSlug, parts: validPartsForTool });
+                        validOptions.push({ tool: null, parts: [null] });
+                    } else if (partsFiltered.length > 0) {
+                        validOptions.push({ tool: null, parts: partsFiltered });
+                    }
+                } else {
+                    const giverTools = pG.give?.tools || [];
+                    const receiverTools = pR.receive?.tools || [];
+
+                    // Intersection
+                    let commonTools = giverTools.filter(t => receiverTools.includes(t));
+
+                    // Filter by inventory (tools need to be in inventory, actor body parts are always available)
+                    const inventorySet = new Set([
+                        ...(inventory || []),
+                        ...tools.filter(t => t.always_available).map(t => t.slug),
+                        ...actorBodyParts.map(b => b.slug)
+                    ]);
+
+                    commonTools = commonTools.filter(ts => inventorySet.has(ts));
+
+                    // If no tools available (and we assume every activity needs a tool/actor), skip
+                    if (commonTools.length === 0) continue;
+
+                    // Now we need to find valid (Tool, Part) pairs
+                    // A pair is valid if the Part is in the intersection of:
+                    // 1. Global allowed targets (partsFiltered)
+                    // 2. Giver's allowed targets for this specific tool (if constrained)
+                    // 3. Receiver's allowed targets for this specific tool (if constrained)
+
+                    for (const toolSlug of commonTools) {
+                        // Get constraints
+                        const giverConstraints = pG.give?.tool_constraints?.[toolSlug];
+                        const receiverConstraints = pR.receive?.tool_constraints?.[toolSlug];
+
+                        // Start with global valid parts
+                        let validPartsForTool = partsFiltered;
+
+                        // Apply Giver constraints if any
+                        if (giverConstraints && giverConstraints.length > 0) {
+                            validPartsForTool = validPartsForTool.filter(p => giverConstraints.includes(p));
+                        }
+
+                        // Apply Receiver constraints if any
+                        if (receiverConstraints && receiverConstraints.length > 0) {
+                            validPartsForTool = validPartsForTool.filter(p => receiverConstraints.includes(p));
+                        }
+
+                        // If we have valid parts (or if the activity doesn't use body parts), this tool is an option
+                        if (!act.has_body_part) {
+                            validOptions.push({ tool: toolSlug, parts: [null] });
+                        } else if (validPartsForTool.length > 0) {
+                            validOptions.push({ tool: toolSlug, parts: validPartsForTool });
+                        }
                     }
                 }
 

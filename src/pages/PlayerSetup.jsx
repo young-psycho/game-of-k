@@ -61,7 +61,7 @@ export default function PlayerSetup() {
     const { players, addPlayer, removePlayer, importPlayer } = useGame();
 
     return (
-        <Section title="Players">
+        <Section>
             <AddPlayerForm onAdd={addPlayer} onImport={importPlayer} />
             <ul className="mt-6 divide-y divide-crimson-900/20">
                 {players.map((p) => (

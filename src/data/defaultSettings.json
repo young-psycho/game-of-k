@@ -1,0 +1,727 @@
+{
+    "activities": [
+        {
+            "slug": "spank",
+            "name": "Spanking",
+            "verb": "spank",
+            "preposition": "'s",
+            "with_word": "with",
+            "has_body_part": true,
+            "has_duration": false,
+            "has_repetitions": true,
+            "min_reps": 1,
+            "max_reps": 20,
+            "default_targets": [
+                "ass",
+                "thighs",
+                "chest",
+                "breasts",
+                "belly",
+                "pussy",
+                "dick"
+            ],
+            "restrict_to_default_targets": true,
+            "giving_text": "to spank",
+            "receiving_text": "to be spanked"
+        },
+        {
+            "slug": "kiss",
+            "name": "Kissing",
+            "verb": "kiss",
+            "preposition": "'s",
+            "with_word": "with",
+            "has_body_part": true,
+            "has_duration": true,
+            "min_seconds": 10,
+            "max_seconds": 60,
+            "has_repetitions": false,
+            "default_targets": [
+                "lips",
+                "neck",
+                "cheeks",
+                "ears",
+                "arms",
+                "armpits",
+                "chest",
+                "breasts",
+                "nipples",
+                "belly",
+                "ribs",
+                "dick",
+                "pussy",
+                "clitoris",
+                "ass",
+                "thighs",
+                "legs",
+                "feet",
+                "face",
+                "shoulders",
+                "hand"
+            ],
+            "giving_text": "to kiss",
+            "receiving_text": "to be kissed",
+            "has_tools": false,
+            "restrict_to_default_targets": true
+        },
+        {
+            "slug": "tickle",
+            "name": "Tickling",
+            "verb": "tickle",
+            "preposition": "'s",
+            "with_word": "with",
+            "has_body_part": true,
+            "has_duration": true,
+            "min_seconds": 10,
+            "max_seconds": 120,
+            "has_repetitions": false,
+            "default_targets": [
+                "armpits",
+                "feet",
+                "ribs",
+                "belly",
+                "neck",
+                "breasts",
+                "nipples",
+                "dick",
+                "pussy",
+                "ass",
+                "thighs"
+            ],
+            "giving_text": "to tickle",
+            "receiving_text": "to be tickled"
+        },
+        {
+            "slug": "restrain",
+            "name": "Restraining",
+            "verb": "restrain",
+            "preposition": "by the",
+            "with_word": "with",
+            "has_body_part": true,
+            "has_duration": true,
+            "min_seconds": 60,
+            "max_seconds": 600,
+            "has_repetitions": false,
+            "default_targets": [
+                "arms",
+                "legs"
+            ],
+            "giving_text": "to restrain",
+            "receiving_text": "to be restrained"
+        },
+        {
+            "slug": "pinch",
+            "name": "Nipple Pinching",
+            "verb": "pinch",
+            "preposition": "'s",
+            "with_word": "with",
+            "has_body_part": true,
+            "has_duration": true,
+            "min_seconds": 10,
+            "max_seconds": 60,
+            "has_repetitions": false,
+            "default_targets": [
+                "nipples"
+            ],
+            "enforce_default_targets": true,
+            "restrict_to_default_targets": true,
+            "has_tools": true,
+            "giving_text": "to pinch someone's nipples",
+            "receiving_text": "to have your niples pinched"
+        },
+        {
+            "slug": "lick",
+            "name": "Licking",
+            "verb": "lick",
+            "preposition": "'s",
+            "with_word": "with",
+            "has_body_part": true,
+            "has_duration": true,
+            "min_seconds": 10,
+            "max_seconds": 120,
+            "has_repetitions": false,
+            "default_targets": [
+                "nipples",
+                "neck",
+                "ears",
+                "chest",
+                "breasts",
+                "pussy",
+                "dick",
+                "belly",
+                "clitoris",
+                "ass",
+                "thighs"
+            ],
+            "has_tools": false,
+            "giving_text": "to lick someone's body",
+            "receiving_text": "to have your body licked"
+        },
+        {
+            "slug": "drink_from",
+            "name": "Drinking",
+            "verb": "drink from",
+            "preposition": "'s",
+            "with_word": "with",
+            "has_body_part": true,
+            "has_duration": false,
+            "has_repetitions": false,
+            "default_targets": [
+                "belly",
+                "neck",
+                "hand",
+                "armpits",
+                "chest",
+                "breasts"
+            ],
+            "giving_text": "to drink from someone's body",
+            "receiving_text": "to have someone drink from your body",
+            "has_tools": false,
+            "restrict_to_default_targets": true
+        },
+        {
+            "slug": "slap",
+            "name": "Slapping",
+            "verb": "slap",
+            "preposition": "'s",
+            "with_word": "",
+            "has_body_part": true,
+            "has_duration": false,
+            "has_repetitions": true,
+            "min_reps": 1,
+            "max_reps": 10,
+            "default_targets": [
+                "face"
+            ],
+            "giving_text": "to slap",
+            "receiving_text": "to be slapped",
+            "has_tools": false,
+            "restrict_to_default_targets": true,
+            "enforce_default_targets": true
+        },
+        {
+            "slug": "write_something_on",
+            "name": "Writing",
+            "verb": "write something on",
+            "preposition": "'s",
+            "with_word": "with",
+            "has_body_part": true,
+            "has_duration": false,
+            "has_repetitions": false,
+            "default_targets": [
+                "ass",
+                "belly",
+                "chest",
+                "back",
+                "thighs",
+                "breasts",
+                "ribs"
+            ],
+            "giving_text": "to write things on someone's body",
+            "receiving_text": "to have things written on your body"
+        },
+        {
+            "slug": "gag",
+            "name": "Gagging",
+            "verb": "gag",
+            "preposition": "'s",
+            "with_word": "with",
+            "has_body_part": true,
+            "has_duration": true,
+            "min_seconds": 30,
+            "max_seconds": 300,
+            "has_repetitions": false,
+            "default_targets": [
+                "mouth"
+            ],
+            "enforced_targets": [
+                "mouth"
+            ],
+            "giving_text": "to gag someone's mouth",
+            "receiving_text": "to have your mouth gagged",
+            "restrict_to_default_targets": true,
+            "enforce_default_targets": true
+        },
+        {
+            "slug": "punch",
+            "name": "Punching",
+            "verb": "punch",
+            "preposition": "on the",
+            "with_word": "",
+            "has_body_part": true,
+            "has_duration": false,
+            "has_repetitions": true,
+            "min_reps": 1,
+            "max_reps": 10,
+            "default_targets": [
+                "ass",
+                "thighs"
+            ],
+            "giving_text": "to punch body parts",
+            "receiving_text": "to have your body parts punched",
+            "has_tools": false
+        },
+        {
+            "slug": "give_oral_pleasure_to",
+            "name": "Give Oral Pleasure",
+            "verb": "give oral pleasure to",
+            "preposition": "'s",
+            "with_word": "",
+            "has_body_part": true,
+            "has_duration": true,
+            "min_seconds": 60,
+            "max_seconds": 300,
+            "has_repetitions": false,
+            "default_targets": [
+                "pussy",
+                "dick",
+                "ass"
+            ],
+            "giving_text": "to give oral pleasure",
+            "receiving_text": "to receive oral pleasure",
+            "has_tools": false,
+            "restrict_to_default_targets": true
+        },
+        {
+            "slug": "fuck",
+            "name": "Fucking",
+            "verb": "fuck",
+            "preposition": "in the",
+            "with_word": "with",
+            "has_body_part": true,
+            "has_duration": true,
+            "min_seconds": 60,
+            "max_seconds": 600,
+            "has_repetitions": false,
+            "default_targets": [
+                "pussy",
+                "ass",
+                "mouth"
+            ],
+            "giving_text": "to fuck",
+            "receiving_text": "to get fucked",
+            "restrict_to_default_targets": true
+        },
+        {
+            "slug": "masturbate",
+            "name": "Masturbate",
+            "verb": "masturbate",
+            "preposition": "'s",
+            "with_word": "with their",
+            "has_body_part": false,
+            "has_duration": true,
+            "min_seconds": 60,
+            "max_seconds": 300,
+            "has_repetitions": false,
+            "default_targets": [
+                "pussy",
+                "dick"
+            ],
+            "has_tools": true,
+            "giving_text": "to masturbate others",
+            "receiving_text": "to be masturbated by others"
+        }
+    ],
+    "body_parts": [
+        {
+            "slug": "ears",
+            "name": "ears",
+            "genders": [
+                "M",
+                "F"
+            ]
+        },
+        {
+            "slug": "cheeks",
+            "name": "cheeks",
+            "genders": [
+                "M",
+                "F"
+            ]
+        },
+        {
+            "slug": "lips",
+            "name": "lips",
+            "genders": [
+                "M",
+                "F"
+            ]
+        },
+        {
+            "slug": "mouth",
+            "name": "mouth",
+            "genders": [
+                "M",
+                "F"
+            ],
+            "is_actor": true,
+            "implicit": true,
+            "allowed_activities": [
+                "kiss",
+                "lick",
+                "drink_from",
+                "give_oral_pleasure_to"
+            ]
+        },
+        {
+            "slug": "tongue",
+            "name": "tongue",
+            "genders": [
+                "M",
+                "F"
+            ],
+            "is_actor": true,
+            "implicit": false,
+            "allowed_activities": [
+                "lick",
+                "give_oral_pleasure_to"
+            ]
+        },
+        {
+            "slug": "face",
+            "name": "face",
+            "genders": [
+                "M",
+                "F"
+            ]
+        },
+        {
+            "slug": "neck",
+            "name": "neck",
+            "genders": [
+                "M",
+                "F"
+            ]
+        },
+        {
+            "slug": "shoulders",
+            "name": "shoulders",
+            "genders": [
+                "M",
+                "F"
+            ]
+        },
+        {
+            "slug": "arms",
+            "name": "arms",
+            "genders": [
+                "M",
+                "F"
+            ]
+        },
+        {
+            "slug": "hand",
+            "name": "hand",
+            "genders": [
+                "M",
+                "F"
+            ],
+            "is_actor": true,
+            "implicit": false,
+            "allowed_activities": [
+                "spank",
+                "tickle",
+                "pinch",
+                "slap",
+                "punch",
+                "masturbate"
+            ]
+        },
+        {
+            "slug": "armpits",
+            "name": "armpits",
+            "genders": [
+                "M",
+                "F"
+            ]
+        },
+        {
+            "slug": "chest",
+            "name": "chest",
+            "genders": [
+                "M"
+            ]
+        },
+        {
+            "slug": "breasts",
+            "name": "breasts",
+            "genders": [
+                "F"
+            ]
+        },
+        {
+            "slug": "nipples",
+            "name": "nipples",
+            "genders": [
+                "M",
+                "F"
+            ]
+        },
+        {
+            "slug": "belly",
+            "name": "belly",
+            "genders": [
+                "M",
+                "F"
+            ]
+        },
+        {
+            "slug": "ribs",
+            "name": "ribs",
+            "genders": [
+                "M",
+                "F"
+            ]
+        },
+        {
+            "slug": "dick",
+            "name": "dick",
+            "genders": [
+                "M"
+            ],
+            "is_actor": true,
+            "implicit": false,
+            "allowed_activities": [
+                "fuck"
+            ]
+        },
+        {
+            "slug": "pussy",
+            "name": "pussy",
+            "genders": [
+                "F"
+            ]
+        },
+        {
+            "slug": "clitoris",
+            "name": "clitoris",
+            "genders": [
+                "F"
+            ]
+        },
+        {
+            "slug": "ass",
+            "name": "ass",
+            "genders": [
+                "M",
+                "F"
+            ]
+        },
+        {
+            "slug": "thighs",
+            "name": "thighs",
+            "genders": [
+                "M",
+                "F"
+            ]
+        },
+        {
+            "slug": "legs",
+            "name": "legs",
+            "genders": [
+                "M",
+                "F"
+            ]
+        },
+        {
+            "slug": "feet",
+            "name": "feet",
+            "genders": [
+                "M",
+                "F"
+            ]
+        }
+    ],
+    "tools": [
+        {
+            "slug": "belt",
+            "name": "belt",
+            "always_available": false,
+            "implicit": false,
+            "allowed_activities": [
+                "spank"
+            ]
+        },
+        {
+            "slug": "paddle",
+            "name": "paddle",
+            "always_available": false,
+            "implicit": false,
+            "allowed_activities": [
+                "spank"
+            ]
+        },
+        {
+            "slug": "crop",
+            "name": "crop",
+            "always_available": false,
+            "implicit": false,
+            "allowed_activities": [
+                "spank"
+            ]
+        },
+        {
+            "slug": "whip",
+            "name": "whip",
+            "always_available": false,
+            "implicit": false,
+            "allowed_activities": [
+                "spank"
+            ]
+        },
+        {
+            "slug": "flogger",
+            "name": "flogger",
+            "always_available": false,
+            "implicit": false,
+            "allowed_activities": [
+                "spank"
+            ]
+        },
+        {
+            "slug": "feather",
+            "name": "feather",
+            "always_available": false,
+            "implicit": false,
+            "allowed_activities": [
+                "tickle"
+            ]
+        },
+        {
+            "slug": "paint_brush",
+            "name": "paint brush",
+            "always_available": false,
+            "implicit": false,
+            "allowed_activities": [
+                "tickle"
+            ]
+        },
+        {
+            "slug": "wartenberg_wheel",
+            "name": "wartenberg wheel",
+            "always_available": false,
+            "implicit": false,
+            "allowed_activities": [
+                "tickle"
+            ]
+        },
+        {
+            "slug": "handcuffs",
+            "name": "handcuffs",
+            "always_available": false,
+            "implicit": false,
+            "allowed_activities": [
+                "restrain"
+            ]
+        },
+        {
+            "slug": "rope",
+            "name": "rope",
+            "always_available": false,
+            "implicit": false,
+            "allowed_activities": [
+                "restrain"
+            ]
+        },
+        {
+            "slug": "tape",
+            "name": "tape",
+            "always_available": false,
+            "implicit": false,
+            "allowed_activities": [
+                "restrain",
+                "gag"
+            ]
+        },
+        {
+            "slug": "bands",
+            "name": "bands",
+            "always_available": false,
+            "implicit": false,
+            "allowed_activities": [
+                "restrain",
+                "gag"
+            ]
+        },
+        {
+            "slug": "nipple_clamps",
+            "name": "nipple clamps",
+            "always_available": false,
+            "implicit": false,
+            "allowed_activities": [
+                "pinch"
+            ]
+        },
+        {
+            "slug": "lipstick",
+            "name": "lipstick",
+            "always_available": false,
+            "implicit": false,
+            "allowed_activities": [
+                "write_something_on"
+            ]
+        },
+        {
+            "slug": "marker",
+            "name": "marker",
+            "always_available": false,
+            "implicit": false,
+            "allowed_activities": [
+                "write_something_on"
+            ]
+        },
+        {
+            "slug": "ball_gag",
+            "name": "ball gag",
+            "always_available": false,
+            "implicit": false,
+            "allowed_activities": [
+                "gag"
+            ]
+        },
+        {
+            "slug": "ring_gag",
+            "name": "ring gag",
+            "always_available": false,
+            "implicit": false,
+            "allowed_activities": [
+                "gag"
+            ]
+        },
+        {
+            "slug": "dildo_gag",
+            "name": "dildo gag",
+            "always_available": false,
+            "implicit": false,
+            "allowed_activities": [
+                "gag"
+            ]
+        },
+        {
+            "slug": "underwear",
+            "name": "underwear",
+            "always_available": true,
+            "implicit": false,
+            "allowed_activities": [
+                "gag"
+            ]
+        },
+        {
+            "slug": "dildo",
+            "name": "dildo",
+            "always_available": false,
+            "implicit": false,
+            "allowed_activities": [
+                "fuck"
+            ]
+        },
+        {
+            "slug": "vibrator",
+            "name": "vibrator",
+            "always_available": false,
+            "implicit": false,
+            "allowed_activities": [
+                "masturbate"
+            ]
+        }
+    ]
+}
